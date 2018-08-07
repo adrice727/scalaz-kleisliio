@@ -1,7 +1,7 @@
 package scalaz.kleisliio
 
 import org.specs2.Specification
-import scalaz.zio.{Errors, IO, RTS}
+import scalaz.zio.{ Errors, IO, RTS }
 
 trait AbstractRTSSpec extends Specification with RTS {
   override def defaultHandler: List[Throwable] => IO[Nothing, Unit] =
@@ -12,8 +12,7 @@ trait AbstractRTSSpec extends Specification with RTS {
       case Errors.NothingRaced           => IO.unit
       case e =>
         IO.sync(
-          Console.err.println(
-            s"""[info] Discarding ${e.getClass.getName} ("${e.getMessage}")""")
+          Console.err.println(s"""[info] Discarding ${e.getClass.getName} ("${e.getMessage}")""")
         )
     } *> IO.unit
 }

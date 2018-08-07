@@ -61,8 +61,8 @@ class KleisliIOSpec extends AbstractRTSSpec {
     unsafeRun(
       for {
         v <- point(1)
-          .zipWith[Nothing, Int, Int, Int](point(2))((a, b) => a + b)
-          .run(1)
+              .zipWith[Nothing, Int, Int, Int](point(2))((a, b) => a + b)
+              .run(1)
       } yield v must_=== 3
     )
 
@@ -70,7 +70,7 @@ class KleisliIOSpec extends AbstractRTSSpec {
     unsafeRun(
       for {
         v <- (lift[Int, Int](_ + 1) &&& lift[Int, Int](_ * 2)).run(6)
-      } yield (v._1 must_=== 7) and (v._2 must_=== 12)
+      } yield (v._1 must_=== 7).and(v._2 must_=== 12)
     )
 
   def e7 =
@@ -78,29 +78,30 @@ class KleisliIOSpec extends AbstractRTSSpec {
       for {
         l <- (lift[Int, Int](_ + 1) ||| lift[Int, Int](_ * 2)).run(Left(25))
         r <- (lift[List[Int], Int](_.sum) ||| lift[List[Int], Int](_.size))
-          .run(Right(List(1, 3, 5, 2, 8)))
-      } yield (l must_=== 26) and (r must_=== 5)
+              .run(Right(List(1, 3, 5, 2, 8)))
+      } yield (l must_=== 26).and(r must_=== 5)
     )
 
   def e8 =
     unsafeRun(
       for {
         v <- lift[Int, Int](_ * 2).first.run(100)
-      } yield (v._1 must_=== 200) and (v._2 must_=== 100)
+      } yield (v._1 must_=== 200).and(v._2 must_=== 100)
     )
 
   def e9 =
     unsafeRun(
       for {
         v <- lift[Int, Int](_ * 2).second.run(100)
-      } yield (v._1 must_=== 100) and (v._2 must_=== 200)
+      } yield (v._1 must_=== 100).and(v._2 must_=== 200)
     )
+
   def e10 =
     unsafeRun(
       for {
         v1 <- lift[Int, Int](_ * 2).left[Int].run(Left(6))
         v2 <- point(1).left[String].run(Right("hi"))
-      } yield (v1 must beLeft(12)) and (v2 must beRight("hi"))
+      } yield (v1 must beLeft(12)).and(v2 must beRight("hi"))
     )
 
   def e11 =
@@ -108,7 +109,7 @@ class KleisliIOSpec extends AbstractRTSSpec {
       for {
         v1 <- lift[Int, Int](_ * 2).right[String].run(Left("no value"))
         v2 <- lift[Int, Int](_ * 2).right[Int].run(Right(7))
-      } yield (v1 must beLeft("no value")) and (v2 must beRight(14))
+      } yield (v1 must beLeft("no value")).and(v2 must beRight(14))
     )
 
   def e12 =
@@ -123,52 +124,46 @@ class KleisliIOSpec extends AbstractRTSSpec {
       for {
         v1 <- test(lift[Array[Int], Boolean](_.sum > 10)).run(Array(1, 2, 5))
         v2 <- test(lift[Array[Int], Boolean](_.sum > 10)).run(Array(1, 2, 5, 6))
-      } yield
-        (v1 must beRight(Array(1, 2, 5))) and (v2 must beLeft(
-          Array(1, 2, 5, 6)))
+      } yield (v1 must beRight(Array(1, 2, 5))).and(v2 must beLeft(Array(1, 2, 5, 6)))
     )
 
   def e14a =
     unsafeRun(
       for {
         v1 <- ifThenElse(lift[Int, Boolean](_ > 0))(point("is positive"))(
-          point("is negative")
-        ).run(-1)
+               point("is negative")
+             ).run(-1)
         v2 <- ifThenElse(lift[Int, Boolean](_ > 0))(point("is positive"))(
-          point("is negative")
-        ).run(1)
-      } yield (v1 must_=== "is negative") and (v2 must_=== "is positive")
+               point("is negative")
+             ).run(1)
+      } yield (v1 must_=== "is negative").and(v2 must_=== "is positive")
     )
 
   def e14b =
     unsafeRun(
       for {
-        v1 <- ifThenElse(pure[Nothing, Int, Boolean](a => IO.now(a > 0)))(
-          point("is positive"))(
-          point("is negative")
-        ).run(-1)
-        v2 <- ifThenElse(pure[Nothing, Int, Boolean](a => IO.now(a > 0)))(
-          point("is positive"))(
-          point("is negative")
-        ).run(1)
-      } yield (v1 must_=== "is negative") and (v2 must_=== "is positive")
+        v1 <- ifThenElse(pure[Nothing, Int, Boolean](a => IO.now(a > 0)))(point("is positive"))(
+               point("is negative")
+             ).run(-1)
+        v2 <- ifThenElse(pure[Nothing, Int, Boolean](a => IO.now(a > 0)))(point("is positive"))(
+               point("is negative")
+             ).run(1)
+      } yield (v1 must_=== "is negative").and(v2 must_=== "is positive")
     )
 
   def e15a =
     unsafeRun(
       for {
-        v <- whileDo[Nothing, Int](lift[Int, Boolean](_ < 10))(
-          lift[Int, Int](_ + 1)).run(1)
+        v <- whileDo[Nothing, Int](lift[Int, Boolean](_ < 10))(lift[Int, Int](_ + 1)).run(1)
       } yield v must_=== 10
     )
 
   def e15b =
     unsafeRun(
       for {
-        v <- whileDo[Nothing, Int](
-          pure[Nothing, Int, Boolean](a => IO.now[Boolean](a < 10)))(
-          pure[Nothing, Int, Int](a => IO.sync[Int](a + 1))
-        ).run(1)
+        v <- whileDo[Nothing, Int](pure[Nothing, Int, Boolean](a => IO.now[Boolean](a < 10)))(
+              pure[Nothing, Int, Int](a => IO.sync[Int](a + 1))
+            ).run(1)
       } yield v must_=== 10
     )
 
@@ -196,8 +191,9 @@ class KleisliIOSpec extends AbstractRTSSpec {
   def e18b =
     unsafeRun(
       for {
-        a <- impure[String, Int, Int] { case _: Throwable => "error" }(_ =>
-          throw new Exception).run(9).attempt
+        a <- impure[String, Int, Int] { case _: Throwable => "error" }(_ => throw new Exception)
+              .run(9)
+              .attempt
       } yield a must beLeft("error")
     )
 }
