@@ -11,6 +11,7 @@ import scala.collection.immutable.Range
 @BenchmarkMode(Array(Mode.Throughput))
 @OutputTimeUnit(TimeUnit.SECONDS)
 class ArrayFillBenchmarks {
+
   @Param(Array("10000"))
   var size: Int = _
 
@@ -23,21 +24,21 @@ class ArrayFillBenchmarks {
     def arrayFill(array: Array[Int]): KleisliIO[Nothing, Int, Int] = {
       val condition = KleisliIO.lift[Int, Boolean]((i: Int) => i < array.length)
 
-      KleisliIO.whileDo[Nothing, Int](condition)(
-        KleisliIO.impureVoid[Int, Int] { i: Int =>
-          array.update(i, i)
+      KleisliIO.whileDo[Nothing, Int](condition)(KleisliIO.impureVoid[Int, Int] { i: Int =>
+        array.update(i, i)
 
-          i + 1
-        })
+        i + 1
+      })
     }
 
     unsafeRun(
       for {
         array <- IO.sync[Array[Int]](createTestArray)
-        _ <- arrayFill(array).run(0)
+        _     <- arrayFill(array).run(0)
       } yield ()
     )
   }
+
   @Benchmark
   def catsArrayFill() = {
     import cats.effect.IO
@@ -48,9 +49,10 @@ class ArrayFillBenchmarks {
 
     (for {
       array <- IO(createTestArray)
-      _ <- arrayFill(array)(0)
+      _     <- arrayFill(array)(0)
     } yield ()).unsafeRunSync()
   }
+
   @Benchmark
   def monixArrayFill() = {
     import monix.eval.Task
@@ -62,7 +64,7 @@ class ArrayFillBenchmarks {
 
     (for {
       array <- Task.eval(createTestArray)
-      _ <- arrayFill(array)(0)
+      _     <- arrayFill(array)(0)
     } yield ()).runSyncUnsafe(Duration.Inf)
   }
 }

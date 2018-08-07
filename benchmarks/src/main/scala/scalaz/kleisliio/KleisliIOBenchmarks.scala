@@ -3,11 +3,10 @@ package scalaz.kleisliio
 object ScalazIOArray {
   import scalaz.zio.IO
 
-  def bubbleSort[A](lessThanEqual0: (A, A) => Boolean)(
-      array: Array[A]): IO[Nothing, Unit] = {
+  def bubbleSort[A](lessThanEqual0: (A, A) => Boolean)(array: Array[A]): IO[Nothing, Unit] = {
 
-    type IndexValue = (Int, A)
-    type IJIndex = (Int, Int)
+    type IndexValue   = (Int, A)
+    type IJIndex      = (Int, Int)
     type IJIndexValue = (IndexValue, IndexValue)
 
     val lessThanEqual =
@@ -61,8 +60,7 @@ object ScalazIOArray {
 object CatsIOArray {
   import cats.effect.IO
 
-  def bubbleSort[A](lessThanEqual0: (A, A) => Boolean)(
-      array: Array[A]): IO[Unit] = {
+  def bubbleSort[A](lessThanEqual0: (A, A) => Boolean)(array: Array[A]): IO[Unit] = {
     def outerLoop(i: Int): IO[Unit] =
       if (i >= array.length - 1) IO.unit
       else innerLoop(i, i + 1).flatMap(_ => outerLoop(i + 1))
@@ -78,7 +76,12 @@ object CatsIOArray {
             maybeSwap.flatMap(_ => innerLoop(i, j + 1))
         }
 
-    def swapIJ(i: Int, ia: A, j: Int, ja: A): IO[Unit] =
+    def swapIJ(
+      i: Int,
+      ia: A,
+      j: Int,
+      ja: A
+    ): IO[Unit] =
       IO { array.update(i, ja); array.update(j, ia) }
 
     outerLoop(0)
@@ -88,8 +91,7 @@ object CatsIOArray {
 object MonixIOArray {
   import monix.eval.Task
 
-  def bubbleSort[A](lessThanEqual0: (A, A) => Boolean)(
-      array: Array[A]): Task[Unit] = {
+  def bubbleSort[A](lessThanEqual0: (A, A) => Boolean)(array: Array[A]): Task[Unit] = {
     def outerLoop(i: Int): Task[Unit] =
       if (i >= array.length - 1) Task.unit
       else innerLoop(i, i + 1).flatMap(_ => outerLoop(i + 1))
@@ -105,7 +107,12 @@ object MonixIOArray {
             maybeSwap.flatMap(_ => innerLoop(i, j + 1))
         }
 
-    def swapIJ(i: Int, ia: A, j: Int, ja: A): Task[Unit] =
+    def swapIJ(
+      i: Int,
+      ia: A,
+      j: Int,
+      ja: A
+    ): Task[Unit] =
       Task.eval { array.update(i, ja); array.update(j, ia) }
 
     outerLoop(0)

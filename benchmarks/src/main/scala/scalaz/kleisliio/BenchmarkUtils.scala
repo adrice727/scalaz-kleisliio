@@ -11,10 +11,13 @@ object BenchmarkUtils extends RTS {
   }
 
   class Thunk[A](val unsafeRun: () => A) {
+
     def map[B](ab: A => B): Thunk[B] =
       new Thunk(() => ab(unsafeRun()))
+
     def flatMap[B](afb: A => Thunk[B]): Thunk[B] =
       new Thunk(() => afb(unsafeRun()).unsafeRun())
+
     def attempt: Thunk[Either[Throwable, A]] =
       new Thunk(() => {
         try Right(unsafeRun())
@@ -23,6 +26,7 @@ object BenchmarkUtils extends RTS {
         }
       })
   }
+
   object Thunk {
     def apply[A](a: => A): Thunk[A] = new Thunk(() => a)
 
