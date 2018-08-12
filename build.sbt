@@ -50,7 +50,7 @@ lazy val core = project
                                                |import replRTS._
                                              """.stripMargin,
     libraryDependencies ++= {
-      val prod = Seq() ++ scalazDependencies
+      val prod = scalazDependencies
 
       val test = Seq(
         "org.specs2" %% "specs2-core"          % "4.3.2",
@@ -74,7 +74,7 @@ lazy val benchmarks = project
         "org.scala-lang" % "scala-compiler" % scalaVersion.value % Provided,
         "io.monix"       %% "monix"         % "3.0.0-RC1",
         "org.typelevel"  %% "cats-effect"   % "1.0.0-RC2"
-      ) ++ scalazDependencies
+      )
   )
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
