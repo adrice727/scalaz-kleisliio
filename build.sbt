@@ -21,11 +21,6 @@ lazy val sonataCredentials = for {
 
 credentials in ThisBuild ++= sonataCredentials.toSeq
 
-lazy val scalazDependencies = Seq(
-  "org.scalaz" %% "scalaz-core" % "7.2.25",
-  "org.scalaz" %% "scalaz-zio"  % "0.1-SNAPSHOT"
-)
-
 lazy val core = project
   .settings(
     // In the repl most warnings are useless or worse.
@@ -50,7 +45,8 @@ lazy val core = project
                                                |import replRTS._
                                              """.stripMargin,
     libraryDependencies ++= {
-      val prod = scalazDependencies
+      val prod =
+        Seq("org.scalaz" %% "scalaz-core" % "7.2.25", "org.scalaz" %% "scalaz-zio" % "0.1-SNAPSHOT")
 
       val test = Seq(
         "org.specs2" %% "specs2-core"          % "4.3.2",
