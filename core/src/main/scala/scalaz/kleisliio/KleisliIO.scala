@@ -116,6 +116,16 @@ sealed trait KleisliIO[+E, -A, +B] {
     self.compose(that)
 
   /**
+   * Composes an effectful function with a pure B => C
+   */
+  final def >>^ [C](f: B => C): KleisliIO[E, A, C] = self.andThen(KleisliIO.lift[B, C](f))
+
+  /**
+   * "Backwards" composition of an effectful function with a pure C => A
+   */
+  final def <<^ [C](f: C => A): KleisliIO[E, C, B] = self.compose(KleisliIO.lift[C, A](f))
+
+  /**
    * Zips the output of this function with the output of that function, using
    * the specified combiner function.
    */

@@ -16,18 +16,20 @@ class KleisliIOSpec extends AbstractRTSSpec {
      `first` returns a tuple: the output on the first element and input on the second element $e8
      `second` returns a tuple: the input on the first element and output on the second element $e9
      `***` returns a tuple: the output on the first element and the output on the second element $e10
-     `left` takes an Either as input and computes it if it is Left otherwise returns the same value of the input $e11
-     `right`takes an Either as input and computes it if it is Right otherwise returns the same value of the input   $e12
-     `asEffect` returns the input value $e13
-     `test` check a condition and returns an Either output: Left if the condition is true otherwise false $e14
-     `ifThenElse` check an impure condition if it is true then computes an effectful function `then0` else computes `else0` $e15a
-     `ifThenElse` check a pure condition if it is true then computes an effectful function `then0` else computes `else0` $e15b
-     `whileDo` take a condition and run the body until the condition will be  false with impure function $e16a
-     `whileDo` take a condition and run the body until the condition will be  false with pure function $e16b
-     `_1` extracts out the first element of a tupe $e17
-     `_2` extracts out the second element of a tupe $e18
-     `fail` returns a failure  $e19a
-     `impure` can translate an Exception to an error  $e19b
+     `>>^` composes an effectful function with a pure A => B $e11
+     `<<^` performs Backwards composition of an effectful function with a pure C => A $e12
+     `left` takes an Either as input and computes it if it is Left otherwise returns the same value of the input $e13
+     `right`takes an Either as input and computes it if it is Right otherwise returns the same value of the input   $e14
+     `asEffect` returns the input value $e15
+     `test` check a condition and returns an Either output: Left if the condition is true otherwise false $e16
+     `ifThenElse` check an impure condition if it is true then computes an effectful function `then0` else computes `else0` $e17a
+     `ifThenElse` check a pure condition if it is true then computes an effectful function `then0` else computes `else0` $e17b
+     `whileDo` take a condition and run the body until the condition will be  false with impure function $e18a
+     `whileDo` take a condition and run the body until the condition will be  false with pure function $e18b
+     `_1` extracts out the first element of a tupe $e19
+     `_2` extracts out the second element of a tupe $e20
+     `fail` returns a failure  $e21a
+     `impure` can translate an Exception to an error  $e21b
     """
 
   def e1 =
@@ -107,12 +109,26 @@ class KleisliIOSpec extends AbstractRTSSpec {
   def e11 =
     unsafeRun(
       for {
+        v <- (lift[Int, Int](_ + 1) >>^ (_ * 2)).run(100)
+      } yield v must_=== 202
+    )
+
+  def e12 =
+    unsafeRun(
+      for {
+        v <- (lift[Int, Int](_ + 1) <<^ ((i: Int) => i * 2)).run(100)
+      } yield v must_=== 201
+    )
+
+  def e13 =
+    unsafeRun(
+      for {
         v1 <- lift[Int, Int](_ * 2).left[Int].run(Left(6))
         v2 <- point(1).left[String].run(Right("hi"))
       } yield (v1 must beLeft(12)).and(v2 must beRight("hi"))
     )
 
-  def e12 =
+  def e14 =
     unsafeRun(
       for {
         v1 <- lift[Int, Int](_ * 2).right[String].run(Left("no value"))
@@ -120,14 +136,14 @@ class KleisliIOSpec extends AbstractRTSSpec {
       } yield (v1 must beLeft("no value")).and(v2 must beRight(14))
     )
 
-  def e13 =
+  def e15 =
     unsafeRun(
       for {
         v <- lift[Int, Int](_ * 2).asEffect.run(56)
       } yield v must_=== 56
     )
 
-  def e14 =
+  def e16 =
     unsafeRun(
       for {
         v1 <- test(lift[Array[Int], Boolean](_.sum > 10)).run(Array(1, 2, 5))
@@ -135,7 +151,7 @@ class KleisliIOSpec extends AbstractRTSSpec {
       } yield (v1 must beRight(Array(1, 2, 5))).and(v2 must beLeft(Array(1, 2, 5, 6)))
     )
 
-  def e15a =
+  def e17a =
     unsafeRun(
       for {
         v1 <- ifThenElse(lift[Int, Boolean](_ > 0))(point("is positive"))(
@@ -147,7 +163,7 @@ class KleisliIOSpec extends AbstractRTSSpec {
       } yield (v1 must_=== "is negative").and(v2 must_=== "is positive")
     )
 
-  def e15b =
+  def e17b =
     unsafeRun(
       for {
         v1 <- ifThenElse(pure[Nothing, Int, Boolean](a => IO.now(a > 0)))(point("is positive"))(
@@ -159,14 +175,14 @@ class KleisliIOSpec extends AbstractRTSSpec {
       } yield (v1 must_=== "is negative").and(v2 must_=== "is positive")
     )
 
-  def e16a =
+  def e18a =
     unsafeRun(
       for {
         v <- whileDo[Nothing, Int](lift[Int, Boolean](_ < 10))(lift[Int, Int](_ + 1)).run(1)
       } yield v must_=== 10
     )
 
-  def e16b =
+  def e18b =
     unsafeRun(
       for {
         v <- whileDo[Nothing, Int](pure[Nothing, Int, Boolean](a => IO.now[Boolean](a < 10)))(
@@ -175,28 +191,28 @@ class KleisliIOSpec extends AbstractRTSSpec {
       } yield v must_=== 10
     )
 
-  def e17 =
+  def e19 =
     unsafeRun(
       for {
         v <- _1[Nothing, Int, String].run((1, "hi"))
       } yield v must_=== 1
     )
 
-  def e18 =
+  def e20 =
     unsafeRun(
       for {
         v <- _2[Nothing, Int, String].run((2, "hola"))
       } yield v must_=== "hola"
     )
 
-  def e19a =
+  def e21a =
     unsafeRun(
       for {
         a <- fail[String]("error").run(1).attempt
       } yield a must beLeft("error")
     )
 
-  def e19b =
+  def e21b =
     unsafeRun(
       for {
         a <- impure[String, Int, Int] { case _: Throwable => "error" }(_ => throw new Exception)
