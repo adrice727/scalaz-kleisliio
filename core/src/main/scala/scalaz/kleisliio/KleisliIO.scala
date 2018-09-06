@@ -143,6 +143,14 @@ sealed trait KleisliIO[+E, -A, +B] {
     KleisliIO.identity[A1] &&& self
 
   /**
+    * Returns a new effectful function that computes the value of this function,
+    * storing it into the first element of a tuple, and computes the value of
+    * that function, storing it in the second element of a tuple..
+    */
+    final def ***[E1 >: E, C, D](that: KleisliIO[E1, C, D]): KleisliIO[E1, (A, C), (B, D)] =
+      KleisliIO.bimap(self, that)
+
+  /**
    * Returns a new effectful function that can either compute the value of this
    * effectful function (if passed `Left(a)`), or can carry along any other
    * `C` value (if passed `Right(c)`).
@@ -479,5 +487,29 @@ object KleisliIO {
           case Left(a)  => l.run(a)
           case Right(c) => r.run(c)
         })
+    }
+
+  /**
+   * See KleisliIO.***
+   */
+  final def bimap[E, A, B, C, D](
+    l: KleisliIO[E, A, B],
+    r: KleisliIO[E, C, D]
+  ): KleisliIO[E, (A, C), (B, D)] =
+    (l, r) match {
+      case (l: Impure[_, _, _], r: Impure[_, _, _]) =>
+        new Impure[E, (A, C), (B, D)]({ case (a, b) => {
+          val c = l.apply0(a)
+          val d = r.apply0(b)
+          (c, d)
+        }})
+      case _ =>
+        KleisliIO.pure[E, (A, C), (B, D)] {
+          case (a, b) =>
+            for {
+              c <- l.run(a)
+              d <- r.run(b)
+            } yield (c, d)
+        }
     }
 }
